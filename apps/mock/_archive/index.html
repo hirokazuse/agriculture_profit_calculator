@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>農業経営シミュレーション | ระบบจำลองการจัดการฟาร์ม</title>
+  <style>
+    :root{--ink:#173326;--green:#17633a;--soft:#eaf7ee;--line:#d5e3d9;--paper:#fff;--ground:#f4f8f5}*{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans Thai","Noto Sans JP",sans-serif}.wrap{max-width:760px;margin:auto;padding:28px 16px 48px}.eyebrow{margin:0 0 8px;color:var(--green);font-size:.78rem;font-weight:800;letter-spacing:.1em}h1{margin:0;font-size:clamp(1.65rem,7vw,2.4rem);line-height:1.25}.ja,.th{display:block}.th{margin-top:3px;color:#5d7165;font-size:.76em;font-weight:500;line-height:1.35}.intro{margin:13px 0 27px;color:#50685a;line-height:1.6}.choices{display:grid;gap:15px}.choice{display:block;padding:21px;color:inherit;text-decoration:none;background:var(--paper);border:1px solid var(--line);border-radius:15px;box-shadow:0 3px 12px #183c2609}.choice:hover,.choice:focus{border-color:var(--green);background:#fcfffc;outline:none}.choice-kicker{color:var(--green);font-size:.88rem;font-weight:800}.choice h2{margin:10px 0 9px;font-size:1.25rem;line-height:1.3}.choice p{margin:0;color:#52695c;font-size:.92rem;line-height:1.55}.future{margin-top:28px;padding:20px;background:#e3f2e7;border-radius:15px}.future h2{margin:0 0 14px;font-size:1.08rem}.flow{display:grid;gap:10px}.flow div{padding:11px 12px;background:#fff;border-radius:8px;font-size:.88rem;line-height:1.45}.arrow{color:var(--green);font-weight:800;padding:0 5px}@media(min-width:701px){.ja,.th{display:inline}.th{margin-left:7px}.choice .th,.intro .th{margin-left:7px}.choice h2 .th{font-size:.75em}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <p class="eyebrow">SIMULATOR SELECT / เลือกเครื่องคำนวณ</p>
+    <h1><span class="ja">農業経営シミュレーション</span><span class="th">ระบบจำลองการจัดการฟาร์ม</span></h1>
+    <p class="intro"><span class="ja">目的に合わせて、随時の販売判断と年間の経営判断を分けて確認できます。</span><span class="th">เลือกตรวจสอบการตัดสินใจขายแต่ละครั้งหรือการตัดสินใจทางธุรกิจประจำปีตามวัตถุประสงค์</span></p>
+    <div class="choices">
+      <a class="choice" href="../profit-calculator/index.html">
+        <div class="choice-kicker"><span class="ja">随時の判断</span><span class="th">การตัดสินใจแต่ละครั้ง</span></div>
+        <h2><span class="ja">簡易売価シミュレーター</span><span class="th">เครื่องคำนวณราคาขายแบบง่าย</span></h2>
+        <p><span class="ja">今、この条件で販売して採算が合うかを確認します。</span><span class="th">ตรวจสอบว่าการขายตามเงื่อนไขปัจจุบันคุ้มทุนหรือไม่</span></p>
+      </a>
+      <a class="choice" href="./profit-calculator-advanced/index.html">
+        <div class="choice-kicker"><span class="ja">年間の判断</span><span class="th">การตัดสินใจประจำปี</span></div>
+        <h2><span class="ja">年間農業経営シミュレーター</span><span class="th">เครื่องคำนวณการจัดการฟาร์มประจำปี</span></h2>
+        <p><span class="ja">年間の所得、労働時間、生活目標から経営の成立性を確認します。</span><span class="th">ตรวจสอบความเป็นไปได้ของธุรกิจจากรายได้ ชั่วโมงทำงาน และเป้าหมายชีวิตประจำปี</span></p>
+      </a>
+    </div>
+    <section class="future" aria-labelledby="future-title">
+      <h2 id="future-title"><span class="ja">将来構成</span><span class="th">โครงสร้างในอนาคต</span></h2>
+      <div class="flow">
+        <div>簡易売価シミュレーター <span class="arrow">→</span> 農業経営データ基盤</div>
+        <div>POS・EC・JA等 <span class="arrow">→</span> 連携アダプター <span class="arrow">→</span> 農業経営データ基盤</div>
+        <div>農業経営データ基盤 <span class="arrow">→</span> 採算・資金繰り・年間判断</div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>売価シミュレーター | เครื่องคำนวณราคาขาย</title>
+  <style>
+    :root { --ink:#18332d; --muted:#62756e; --line:#dbe6df; --paper:#fffdfa; --ground:#f3f7f2; --green:#27734a; --green-pale:#e6f3e9; --red:#a83d35; --red-pale:#fff0ee; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--ground); font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans Thai",sans-serif; font-feature-settings:"palt"; }
+    main { width:min(1080px,100%); margin:auto; padding:clamp(20px,4vw,48px) 16px 56px; }
+    .eyebrow { margin:0 0 8px; color:var(--green); font-size:.8rem; font-weight:700; letter-spacing:.08em; }
+    .nav-link { display:inline-block; margin-bottom:18px; color:var(--green); font-size:.88rem; font-weight:700; text-decoration:none; }
+    .nav-link:hover { text-decoration:underline; }
+    .scope-note { margin:12px 0 28px; padding:12px 14px; color:#38594b; background:var(--green-pale); border-left:4px solid var(--green); border-radius:6px; font-size:.88rem; line-height:1.55; }
+    h1 { margin:0; font-size:clamp(1.6rem,4vw,2.45rem); line-height:1.25; }
+    .subtitle { margin:10px 0 28px; color:var(--muted); line-height:1.65; }
+    .card { margin:16px 0; padding:clamp(18px,3vw,28px); background:var(--paper); border:1px solid var(--line); border-radius:16px; box-shadow:0 3px 14px #18332d0a; }
+    h2 { margin:0 0 18px; font-size:1.08rem; }
+    .ja { display:block; font-weight:700; }
+    .th { display:block; margin-top:2px; color:var(--muted); font-size:.78em; font-weight:500; line-height:1.3; }
+    .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+    .field { min-width:0; }
+    label { display:block; margin:0 0 6px; font-size:.87rem; }
+    input, select { width:100%; min-height:43px; padding:9px 10px; color:var(--ink); border:1px solid #b9cbc0; border-radius:8px; background:#fff; font:inherit; }
+    input:focus, select:focus { outline:3px solid #bfdfc9; border-color:var(--green); }
+    .channels { display:grid; gap:12px; }
+    .channel { padding:16px; border:1px solid var(--line); border-radius:12px; background:#fbfdfb; }
+    .channel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .channel-head strong { font-size:.95rem; }
+    .channel .grid { grid-template-columns:1.35fr repeat(5,minmax(0,1fr)); }
+    button { min-height:40px; padding:8px 13px; cursor:pointer; border:1px solid var(--green); border-radius:8px; background:#fff; color:var(--green); font:inherit; font-weight:700; }
+    button:hover { background:var(--green-pale); }
+    button:disabled { cursor:not-allowed; opacity:.48; background:#f1f4f1; color:var(--muted); border-color:#c8d1cb; }
+    .remove { color:#8a3a33; border-color:#d9aaa5; font-size:.84rem; }
+    .add { margin-top:14px; }
+    .errors { margin:16px 0 0; padding:0; list-style:none; }
+    .errors:empty { display:none; }
+    .errors li { margin-top:8px; padding:11px 13px; color:#7a2e28; background:var(--red-pale); border-left:4px solid var(--red); border-radius:6px; font-size:.9rem; }
+    .result-note { margin:-5px 0 17px; color:var(--muted); font-size:.85rem; line-height:1.55; }
+    .results { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .metric { padding:16px; background:var(--green-pale); border-radius:12px; }
+    .metric .label { min-height:39px; color:#38594b; font-size:.83rem; line-height:1.25; }
+    .metric .value { margin-top:8px; font-size:clamp(1.15rem,3vw,1.55rem); font-weight:800; letter-spacing:-.02em; }
+    .metric.important { color:#fff; background:var(--green); }
+    .metric.important .label { color:#e5f4e9; }
+    .route-results { margin-top:18px; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; min-width:500px; }
+    th,td { padding:11px 8px; border-bottom:1px solid var(--line); text-align:right; font-size:.9rem; }
+    th { color:var(--muted); font-weight:600; }
+    th:first-child,td:first-child { text-align:left; }
+    .footnote { margin:18px 0 0; color:var(--muted); font-size:.78rem; line-height:1.6; }
+    textarea { width:100%; min-height:108px; resize:vertical; padding:10px; color:var(--ink); border:1px solid #b9cbc0; border-radius:8px; background:#fff; font:inherit; line-height:1.5; }
+    textarea:focus { outline:3px solid #bfdfc9; border-color:var(--green); }
+    .question-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .question-actions button { background:var(--green); color:#fff; }
+    .question-actions button:hover { background:#1d623c; }
+    .copy-status { min-height:1.4em; margin:12px 0 0; color:var(--green); font-size:.88rem; }
+    @media (max-width:760px) { .grid,.channel .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } .results { grid-template-columns:repeat(2,minmax(0,1fr)); } .channel .field:first-child { grid-column:1 / -1; } }
+    @media (min-width:761px) { label .ja,label .th { display:inline; } label .th { margin:0 0 0 5px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="nav-link" href="../mock/index.html"><span class="ja">シミュレーター選択へ戻る</span><span class="th">กลับไปเลือกเครื่องคำนวณ</span></a>
+    <p class="eyebrow">QUICK PRICE CHECK</p>
+    <h1>随時の販売判断<br><span class="th">การตัดสินใจขายแต่ละครั้ง</span></h1>
+    <p class="subtitle">簡易売価シミュレーター<br><span class="th">เครื่องคำนวณราคาขายแบบง่าย</span></p>
+    <p class="scope-note">この画面は1回ごとの販売条件を確認するものです。年間所得、生活費、年間労働時間は計算しません。<br><span class="th">หน้าจอนี้ใช้ตรวจสอบเงื่อนไขการขายแต่ละครั้ง ไม่คำนวณรายได้ต่อปี ค่าครองชีพ หรือชั่วโมงทำงานต่อปี</span></p>
+
+    <section class="card" aria-labelledby="crop-heading">
+      <h2 id="crop-heading">作目の条件 <span class="th">เงื่อนไขของพืช</span></h2>
+      <div class="grid">
+        <div class="field"><label for="cropName"><span class="ja">作目名</span><span class="th">ชื่อพืช</span></label><input id="cropName" value="例：トマト" autocomplete="off"></div>
+        <div class="field"><label for="unit"><span class="ja">販売単位</span><span class="th">หน่วยขาย</span></label><select id="unit"><option value="kg">kg</option><option value="個">個</option><option value="袋">袋</option><option value="箱">箱</option><option value="本">本</option></select></div>
+        <div class="field"><label for="plannedQuantity"><span class="ja">販売予定数量</span><span class="th">ปริมาณที่วางแผนขาย</span></label><input id="plannedQuantity" type="number" min="0" step="0.1" value="100" inputmode="decimal"></div>
+        <div class="field"><label for="productionCost"><span class="ja">生産原価（円）</span><span class="th">ต้นทุนการผลิต (เยน)</span></label><input id="productionCost" type="number" min="0" step="1" value="20000" inputmode="decimal"></div>
+        <div class="field"><label for="targetAmount"><span class="ja">この作物から確保したい金額（円）</span><span class="th">จำนวนเงินที่ต้องการจากพืชนี้ (เยน)</span></label><input id="targetAmount" type="number" min="0" step="1" value="10000" inputmode="decimal"></div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="channel-heading">
+      <h2 id="channel-heading">販路の条件 <span class="th">เงื่อนไขช่องทางการขาย</span></h2>
+      <div id="channels" class="channels"></div>
+      <button id="addChannel" class="add" type="button">＋ 販路を追加 <span class="th">เพิ่มช่องทางขาย</span></button>
+    </section>
+
+    <section class="card" aria-labelledby="result-heading" aria-live="polite">
+      <h2 id="result-heading">計算結果 <span class="th">ผลการคำนวณ</span></h2>
+      <p class="result-note">必要単価は、現在の販路ごとの数量配分・手数料率・固定販売費を前提にした平均の表示単価です。<br>ราคาที่จำเป็นคือราคาขายเฉลี่ย โดยอิงจากสัดส่วนปริมาณ ค่าธรรมเนียม และค่าใช้จ่ายคงที่ของแต่ละช่องทางในปัจจุบัน</p>
+      <div id="results" class="results"></div>
+      <div class="route-results"><table><thead><tr><th>販路 / ช่องทาง</th><th>販売数量 / ปริมาณ</th><th>手取り単価 / หน่วยละสุทธิ</th><th>手取り売上 / ยอดขายสุทธิ</th></tr></thead><tbody id="routeResultRows"></tbody></table></div>
+      <ul id="errors" class="errors" role="alert"></ul>
+      <p class="footnote">これは作目別利益の概算です。農業所得、手元資金、生活費の引出しは含めません。<br>นี่คือประมาณการกำไรของพืชแต่ละชนิด ไม่รวมรายได้เกษตร เงินสดคงเหลือ หรือการถอนเงินเพื่อค่าครองชีพ</p>
+    </section>
+
+    <section class="card" aria-labelledby="question-heading">
+      <h2 id="question-heading">ChatGPTに質問 <span class="th">ถาม ChatGPT</span></h2>
+      <div class="field"><label for="question"><span class="ja">相談したいことを追加</span><span class="th">เพิ่มคำถามของคุณ</span></label><textarea id="question" placeholder="例：直売所の割合を増やした方がよいですか？"></textarea></div>
+      <div class="question-actions">
+        <button id="askChatGPT" type="button">ChatGPTに質問 / ถาม ChatGPT</button>
+      </div>
+      <p id="copyStatus" class="copy-status" aria-live="polite"></p>
+      <p class="footnote">計算結果は自動送信されません。コピーしたプロンプトを、ご自身でChatGPTに貼り付けてください。<br>ผลการคำนวณจะไม่ถูกส่งโดยอัตโนมัติ กรุณาวางพรอมต์ที่คัดลอกใน ChatGPT ด้วยตนเอง</p>
+    </section>
+  </main>
+
+  <template id="channelTemplate">
+    <article class="channel">
+      <div class="channel-head"><strong>販路 <span class="th">ช่องทางการขาย</span></strong><button class="remove" type="button">削除 / ลบ</button></div>
+      <div class="grid">
+        <div class="field"><label><span class="ja">販路名</span><span class="th">ชื่อช่องทาง</span></label><input class="channel-name" value="直売" autocomplete="off"></div>
+        <div class="field"><label><span class="ja">販売数量</span><span class="th">ปริมาณขาย</span></label><input class="quantity" type="number" min="0" step="0.1" value="100" inputmode="decimal"></div>
+        <div class="field"><label><span class="ja">販売単価（円）</span><span class="th">ราคาขาย (เยน)</span></label><input class="unit-price" type="number" min="0" step="0.1" value="350" inputmode="decimal"></div>
+        <div class="field"><label><span class="ja">手数料（%）</span><span class="th">ค่าธรรมเนียม (%)</span></label><input class="fee-rate" type="number" min="0" max="100" step="0.1" value="0" inputmode="decimal"></div>
+        <div class="field"><label><span class="ja">送料（円）</span><span class="th">ค่าจัดส่ง (เยน)</span></label><input class="shipping" type="number" min="0" step="1" value="0" inputmode="decimal"></div>
+        <div class="field"><label><span class="ja">梱包費（円）</span><span class="th">ค่าบรรจุภัณฑ์ (เยน)</span></label><input class="packing" type="number" min="0" step="1" value="0" inputmode="decimal"></div>
+      </div>
+    </article>
+  </template>
+  <script>
+    (() => {
+      const yen = new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 });
+      const decimal = new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 2 });
+      const $ = (selector) => document.querySelector(selector);
+      const fields = ['cropName', 'unit', 'plannedQuantity', 'productionCost', 'targetAmount'];
+
+      // UIに依存しない計算。将来 packages/ に移動できる形で値だけを受け取る。
+      const calculateScenario = ({ plannedQuantity, productionCost, targetAmount, channels }) => {
+        const errors = [];
+        const invalid = (value) => !Number.isFinite(value) || value < 0;
+        if (!(plannedQuantity > 0)) errors.push('販売予定数量は0より大きい値を入力してください。 / กรุณากรอกปริมาณที่วางแผนขายมากกว่า 0');
+        if (invalid(productionCost)) errors.push('生産原価は0以上で入力してください。 / กรุณากรอกต้นทุนการผลิตตั้งแต่ 0 ขึ้นไป');
+        if (invalid(targetAmount)) errors.push('確保したい金額は0以上で入力してください。 / กรุณากรอกจำนวนเงินที่ต้องการตั้งแต่ 0 ขึ้นไป');
+        if (!channels.length) errors.push('少なくとも1つの販路を追加してください。 / กรุณาเพิ่มช่องทางขายอย่างน้อย 1 ช่องทาง');
+        channels.forEach((channel, index) => {
+          if (!(channel.quantity > 0)) errors.push(`販路${index + 1}の販売数量は0より大きい値を入力してください。 / ปริมาณขายของช่องทาง ${index + 1} ต้องมากกว่า 0`);
+          if (invalid(channel.unitPrice) || invalid(channel.feeRate) || channel.feeRate > 100 || invalid(channel.shipping) || invalid(channel.packing)) errors.push(`販路${index + 1}に有効な0以上の金額・手数料（0〜100%）を入力してください。 / กรุณากรอกจำนวนเงินที่ถูกต้องและค่าธรรมเนียม 0–100% สำหรับช่องทาง ${index + 1}`);
+        });
+        const totalQuantity = channels.reduce((sum, channel) => sum + channel.quantity, 0);
+        if (plannedQuantity > 0 && Math.abs(totalQuantity - plannedQuantity) > 0.000001) errors.push(`販路の販売数量合計（${decimal.format(totalQuantity)}）を販売予定数量（${decimal.format(plannedQuantity)}）に合わせてください。 / ยอดปริมาณรวมของช่องทาง (${decimal.format(totalQuantity)}) ต้องเท่ากับปริมาณที่วางแผนขาย (${decimal.format(plannedQuantity)})`);
+        if (errors.length) return { errors };
+
+        const routeResults = channels.map((channel) => {
+          const fixedCost = channel.shipping + channel.packing;
+          const netRevenue = channel.quantity * channel.unitPrice * (1 - channel.feeRate / 100) - fixedCost;
+          return { ...channel, fixedCost, netUnitPrice: netRevenue / channel.quantity, netRevenue };
+        });
+        const totalNetRevenue = routeResults.reduce((sum, route) => sum + route.netRevenue, 0);
+        const fixedSalesCost = routeResults.reduce((sum, route) => sum + route.fixedCost, 0);
+        const weightedRetention = routeResults.reduce((sum, route) => sum + route.quantity * (1 - route.feeRate / 100), 0) / plannedQuantity;
+        if (!(weightedRetention > 0)) return { errors: ['手数料率を100%未満にしてください。 / กรุณากำหนดค่าธรรมเนียมให้ต่ำกว่า 100%'] };
+        // 必要表示単価 = (原価 + 目標額 + 送料・梱包費) ÷ (予定数量 × 加重手取り率)
+        return { errors: [], routeResults, totalNetRevenue, profit: totalNetRevenue - productionCost,
+          breakEvenUnitPrice: (productionCost + fixedSalesCost) / (plannedQuantity * weightedRetention),
+          requiredUnitPrice: (productionCost + targetAmount + fixedSalesCost) / (plannedQuantity * weightedRetention) };
+      };
+
+      const addChannel = () => {
+        const node = $('#channelTemplate').content.cloneNode(true);
+        node.querySelector('.remove').addEventListener('click', (event) => { event.currentTarget.closest('.channel').remove(); update(); });
+        node.querySelectorAll('input').forEach((input) => input.addEventListener('input', update));
+        $('#channels').append(node);
+      };
+      const value = (id) => Number($(`#${id}`).value);
+      const readScenario = () => ({ plannedQuantity: value('plannedQuantity'), productionCost: value('productionCost'), targetAmount: value('targetAmount'), channels: [...document.querySelectorAll('.channel')].map((node) => ({ name: node.querySelector('.channel-name').value.trim() || '名称未入力 / ไม่ระบุชื่อ', quantity: Number(node.querySelector('.quantity').value), unitPrice: Number(node.querySelector('.unit-price').value), feeRate: Number(node.querySelector('.fee-rate').value), shipping: Number(node.querySelector('.shipping').value), packing: Number(node.querySelector('.packing').value) })) });
+      const metric = (ja, th, amount, important = false) => `<div class="metric${important ? ' important' : ''}"><div class="label"><span class="ja">${ja}</span><span class="th">${th}</span></div><div class="value">${amount}</div></div>`;
+      const promptAmount = (amount) => decimal.format(amount);
+      const createPrompt = (scenario, result) => {
+        const unit = $('#unit').value;
+        const grossRevenue = scenario.channels.reduce((sum, channel) => sum + channel.quantity * channel.unitPrice, 0);
+        const costRate = grossRevenue > 0 ? `${decimal.format(scenario.productionCost / grossRevenue * 100)}%` : '算出不可';
+        const channelDetails = result.routeResults.map((route) => `${route.name}：数量 ${decimal.format(route.quantity)}${unit}、販売単価 ${promptAmount(route.unitPrice)}円/${unit}、手数料 ${decimal.format(route.feeRate)}%、送料 ${promptAmount(route.shipping)}円、梱包費 ${promptAmount(route.packing)}円、手取り単価 ${promptAmount(route.netUnitPrice)}円/${unit}`).join('\n');
+        return `あなたは農業経営の相談相手です。
+以下は農業の簡易売価シミュレーション結果です。
+
+【作目・販売条件】
+作目：${$('#cropName').value.trim() || '未入力'}
+販売単位：${unit}
+販売予定数量：${decimal.format(scenario.plannedQuantity)}${unit}
+
+【原価の前提】
+概算原価率：${costRate}
+概算生産原価：${promptAmount(scenario.productionCost)}円
+この作物から確保したい金額：${promptAmount(scenario.targetAmount)}円
+
+【販路別の条件】
+${channelDetails}
+
+【計算結果】
+合計手取り売上：${promptAmount(result.totalNetRevenue)}円
+作目別利益：${promptAmount(result.profit)}円
+損益分岐単価：${promptAmount(result.breakEvenUnitPrice)}円/${unit}
+目標額を確保するための必要単価：${promptAmount(result.requiredUnitPrice)}円/${unit}
+
+【相談したいこと】
+${$('#question').value.trim() || '（特になし）'}
+
+この計算は概算です。
+不足している前提条件、価格や数量のリスク、販路別に見直すべき点を整理してください。
+確定申告や税務の断定はせず、追加で確認すべき情報も質問してください。`;
+      };
+      const setQuestionActions = (enabled) => {
+        $('#askChatGPT').disabled = !enabled;
+        if (!enabled) $('#copyStatus').textContent = '入力エラーを解消すると、相談用プロンプトを利用できます。 / แก้ไขข้อผิดพลาดเพื่อใช้พรอมต์สำหรับปรึกษา';
+        else $('#copyStatus').textContent = '';
+      };
+      const update = () => {
+        const result = calculateScenario(readScenario());
+        $('#errors').innerHTML = result.errors.map((error) => `<li>${error}</li>`).join('');
+        if (result.errors.length) { $('#results').innerHTML = ''; $('#routeResultRows').innerHTML = ''; setQuestionActions(false); return; }
+        const unit = $('#unit').value;
+        $('#results').innerHTML = [metric('合計手取り売上', 'ยอดขายสุทธิรวม', yen.format(result.totalNetRevenue)), metric('作目別利益', 'กำไรของพืช', yen.format(result.profit)), metric(`損益分岐単価（円/${unit}）`, `ราคาคุ้มทุน (เยน/${unit})`, yen.format(result.breakEvenUnitPrice)), metric(`目標額の必要単価（円/${unit}）`, `ราคาที่จำเป็นสำหรับเป้าหมาย (เยน/${unit})`, yen.format(result.requiredUnitPrice), true)].join('');
+        $('#routeResultRows').innerHTML = result.routeResults.map((route) => `<tr><td>${route.name}</td><td>${decimal.format(route.quantity)} ${unit}</td><td>${yen.format(route.netUnitPrice)}/${unit}</td><td>${yen.format(route.netRevenue)}</td></tr>`).join('');
+        setQuestionActions(true);
+      };
+      const copyPromptAndOpenChatGPT = async () => {
+        const scenario = readScenario();
+        const result = calculateScenario(scenario);
+        if (result.errors.length) return;
+        const prompt = createPrompt(scenario, result);
+        try {
+          await navigator.clipboard.writeText(prompt);
+        } catch {
+          const temporary = document.createElement('textarea');
+          temporary.value = prompt;
+          temporary.setAttribute('readonly', '');
+          temporary.style.position = 'fixed';
+          temporary.style.opacity = '0';
+          document.body.append(temporary);
+          temporary.select();
+          const copied = document.execCommand('copy');
+          temporary.remove();
+          if (!copied) {
+            $('#copyStatus').textContent = 'コピーできませんでした。ブラウザの権限を確認してください。 / ไม่สามารถคัดลอกได้ กรุณาตรวจสอบสิทธิ์ของเบราว์เซอร์';
+            return;
+          }
+        }
+        window.open('https://chatgpt.com/', '_blank', 'noopener');
+        $('#copyStatus').textContent = 'プロンプトをコピーしました。ChatGPTに貼り付けてください。 / คัดลอกพรอมต์แล้ว กรุณาวางใน ChatGPT';
+      };
+      fields.forEach((id) => $(`#${id}`).addEventListener('input', update));
+      $('#addChannel').addEventListener('click', () => { addChannel(); update(); });
+      $('#askChatGPT').addEventListener('click', copyPromptAndOpenChatGPT);
+      addChannel(); update();
+      window.profitCalculator = { calculateScenario, createPrompt }; // 将来のパッケージ化・テスト用の公開点
+    })();
+  </script>
+</body>
+</html>

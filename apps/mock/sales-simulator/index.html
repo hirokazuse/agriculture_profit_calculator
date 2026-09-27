@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>販売採算・経営判断シミュレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EFEAE1; --paper-dim:#E4DECF; --ink:#232019; --sub:#8A8371;
+  --line:#D8D0BE; --green:#2F5D50; --red:#9B4534; --white:#FBFAF6;
+  --amber:#B98A3D; --brown:#8B6F47; --track:#DDD5C2;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1B1912; --paper-dim:#241F16; --ink:#EDE7D8; --sub:#9B9382;
+    --line:#3A3325; --green:#6FBFA6; --red:#D98267; --white:#211D14; --track:#3A3325;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1B1912; --paper-dim:#241F16; --ink:#EDE7D8; --sub:#9B9382;
+  --line:#3A3325; --green:#6FBFA6; --red:#D98267; --white:#211D14; --track:#3A3325;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Zen Kaku Gothic New',-apple-system,sans-serif;font-feature-settings:"palt"}
+.wrap{max-width:960px;margin:0 auto;padding:32px 20px 80px}
+h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(22px,4vw,30px);margin:0 0 4px;letter-spacing:.01em}
+.th{font-family:inherit;font-size:.5em;font-weight:400;color:var(--sub);letter-spacing:0}
+.lede{color:var(--sub);font-size:14px;margin:0 0 24px;line-height:1.7}
+.lede .th{display:block;font-size:13px;margin-top:2px}
+.jt{display:block}
+.jt .th{display:block;font-size:.78em;color:var(--sub);font-weight:400}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:24px}
+.tab-btn{
+  font-family:inherit;font-size:13.5px;padding:10px 16px;border:none;background:none;color:var(--sub);
+  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;text-align:left;
+}
+.tab-btn .th{font-size:.78em}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--ink);font-weight:500}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.block-title{font-size:12px;color:var(--sub);border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:14px;display:flex;justify-content:space-between}
+.field{display:grid;grid-template-columns:1fr 110px 36px;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.field label{font-size:13.5px}
+.field input{font-family:inherit;font-size:15px;text-align:right;border:none;background:transparent;color:var(--ink);border-bottom:1px solid transparent;padding:4px 2px;width:100%;font-variant-numeric:tabular-nums}
+.field input:focus{outline:none;border-bottom:1px solid var(--ink)}
+.field .unit{font-size:12px;color:var(--sub)}
+.net-toggle{padding:10px 0 4px;font-size:13px}
+.net-toggle input{margin-right:6px}
+#netFields{background:var(--paper-dim);padding:2px 10px;margin-bottom:4px;border-radius:2px}
+.chain{font-size:12px;color:var(--sub);text-align:center;padding:3px 0}
+.ledger{background:var(--white);border:1px solid var(--line);padding:20px;border-radius:2px}
+.row{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;border-bottom:1px dashed var(--line)}
+.row.total{border-bottom:none;padding-top:14px;margin-top:4px;border-top:1px solid var(--ink)}
+.row .num{font-variant-numeric:tabular-nums;font-weight:500}
+.hero-num{font-family:'Fraunces',serif;font-size:clamp(28px,5.5vw,40px);font-weight:600;margin:2px 0 2px;font-variant-numeric:tabular-nums}
+.hero-label{font-size:12.5px;color:var(--sub)}
+.verdict{margin-top:14px;padding:14px 16px;border-radius:2px;font-size:14.5px;line-height:1.6}
+.verdict.ok{background:color-mix(in srgb, var(--green) 14%, transparent);color:var(--green)}
+.verdict.ng{background:color-mix(in srgb, var(--red) 14%, transparent);color:var(--red)}
+.section{margin-top:32px}
+textarea{width:100%;min-height:150px;font-family:inherit;font-size:13.5px;line-height:1.7;background:var(--white);border:1px solid var(--line);color:var(--ink);padding:14px;border-radius:2px;resize:vertical}
+.ai-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+button{font-family:inherit;font-size:13.5px;padding:9px 16px;border-radius:2px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+button.primary{background:var(--ink);color:var(--paper)}
+button:active{opacity:.7}
+.copied{font-size:12px;color:var(--green);margin-left:8px}
+.chart-block{display:flex;gap:18px;align-items:center;margin:16px 0;flex-wrap:wrap}
+.donut-wrap{position:relative;width:110px;height:110px;flex:none}
+.donut-wrap .ring{width:100%;height:100%;border-radius:50%}
+.donut-wrap .hole{position:absolute;inset:13px;background:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-family:'Fraunces',serif;font-weight:600;font-size:13px;line-height:1.2;padding:4px}
+.legend{font-size:12.5px;line-height:2}
+.legend .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+.na{color:var(--sub);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>販売採算・経営判断シミュレーター<br><span class="th">เครื่องมือจำลองกำไรการขายและการตัดสินใจธุรกิจ</span></h1>
+  <p class="lede">1取引の採算と、1取引→月→年へ展開した経営判断を分けて見ます。<br><span class="th">แยกดูความคุ้มค่าต่อรายการ กับการตัดสินใจธุรกิจที่ขยายจากครั้ง→เดือน→ปี</span></p>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="t1">① 取引採算<span class="th">กำไรต่อรายการ</span></button>
+    <button class="tab-btn" data-tab="t2">② 年間経営判断<span class="th">การตัดสินใจธุรกิจประจำปี</span></button>
+  </div>
+
+  <!-- TAB1 -->
+  <div class="tab-panel active" id="tab-t1">
+    <div class="grid">
+      <div>
+        <div class="block-title"><span class="jt">1取引<span class="th">รายการต่อครั้ง</span></span><span class="jt">入力<span class="th">ข้อมูลนำเข้า</span></span></div>
+        <div class="field"><label class="jt">仕入量<span class="th">ปริมาณที่ซื้อ</span></label><input id="pQty" type="number" value="100" step="any"><span class="unit jt">単位<span class="th">หน่วย</span></span></div>
+        <div class="field"><label class="jt">仕入金額<span class="th">ต้นทุนการซื้อ</span></label><input id="pCost" type="number" value="11000" step="any"><span class="unit jt">円<span class="th">เยน</span></span></div>
+        <div class="field"><label class="jt">販売量<span class="th">ปริมาณที่ขาย</span></label><input id="sQty" type="number" value="100" step="any"><span class="unit jt">単位<span class="th">หน่วย</span></span></div>
+        <div class="field"><label class="jt">販売単価<span class="th">ราคาขายต่อหน่วย</span></label><input id="sPrice" type="number" value="160" step="any"><span class="unit jt">円<span class="th">เยน</span></span></div>
+        <div class="field"><label class="jt">作業時間<span class="th">เวลาทำงาน</span></label><input id="hours" type="number" value="4" step="any"><span class="unit jt">時間<span class="th">ชั่วโมง</span></span></div>
+        <div class="field"><label class="jt">移動費<span class="th">ค่าเดินทาง</span></label><input id="travel" type="number" value="2000" step="any"><span class="unit jt">円<span class="th">เยน</span></span></div>
+        <div class="field"><label class="jt">その他経費<span class="th">ค่าใช้จ่ายอื่นๆ</span></label><input id="other" type="number" value="500" step="any"><span class="unit jt">円<span class="th">เยน</span></span></div>
+        <div class="net-toggle"><label class="jt"><input type="checkbox" id="netEnabled"> ネット販売の経費を含める<span class="th">รวมค่าใช้จ่ายกรณีขายออนไลน์</span></label></div>
+        <div id="netFields" style="display:none">
+          <div class="field"><label class="jt">送料<span class="th">ค่าส่งสินค้า</span></label><input id="shipping" type="number" value="0" step="any"><span class="unit jt">円<span class="th">เยน</span></span></div>
+          <div class="field"><label class="jt">代引き手数料<span class="th">ค่าธรรมเนียมเก็บเงินปลายทาง</span></label><input id="cod" type="number" value="0" step="any"><span class="unit jt">円<span class="th">เยน</span></span></div>
+          <div class="field"><label class="jt">配達料<span class="th">ค่าจัดส่ง</span></label><input id="delivery" type="number" value="0" step="any"><span class="unit jt">円<span class="th">เยน</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="block-title"><span class="jt">取引採算<span class="th">ผลลัพธ์ต่อรายการ</span></span><span>1取引のみ</span></div>
+        <div class="ledger">
+          <div class="hero-label jt">事業利益（1取引）<span class="th">กำไรธุรกิจต่อครั้ง</span></div>
+          <div class="hero-num" id="outRunProfit">¥0</div>
+          <div class="row jt"><span>実質時給<span class="th">ค่าแรงต่อชั่วโมงจริง</span></span><span class="num" id="outActualWage">¥0</span></div>
+          <div class="block-title jt" style="margin-top:18px">売上の構成<span class="th">องค์ประกอบยอดขาย</span></div>
+          <div class="chart-block" id="pieBlock">
+            <div class="donut-wrap"><div class="ring" id="pieRing"></div><div class="hole" id="pieHole"></div></div>
+            <div class="legend" id="pieLegend"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB2 -->
+  <div class="tab-panel" id="tab-t2">
+    <div class="grid">
+      <div>
+        <div class="block-title"><span class="jt">経営条件<span class="th">เงื่อนไขธุรกิจ</span></span><span class="jt">入力<span class="th">ข้อมูลนำเข้า</span></span></div>
+        <div class="field"><label class="jt">月間実施回数<span class="th">จำนวนครั้งต่อเดือน</span></label><input id="runs" type="number" value="8" step="any"><span class="unit jt">回<span class="th">ครั้ง</span></span></div>
+        <div class="field"><label class="jt">事業に残す割合<span class="th">สัดส่วนที่เก็บไว้ในธุรกิจ</span></label><input id="reserveRatio" type="number" value="30" step="any" min="0" max="100"><span class="unit jt">%<span class="th">%</span></span></div>
+        <div class="field"><label class="jt">生活費目標<span class="th">เป้าหมายค่าครองชีพ</span></label><input id="target" type="number" value="250000" step="any"><span class="unit jt">円/月<span class="th">เยน/เดือน</span></span></div>
+      </div>
+      <div>
+        <div class="block-title"><span class="jt">年間経営判断<span class="th">การตัดสินใจธุรกิจ</span></span><span>1取引→月→年</span></div>
+        <div class="ledger">
+          <div class="hero-label jt">月間事業利益<span class="th">กำไรธุรกิจต่อเดือน</span></div>
+          <div class="hero-num" id="outMonthlyProfit">¥0</div>
+          <div class="row jt"><span>年間事業利益<span class="th">กำไรธุรกิจต่อปี</span></span><span class="num" id="outYearlyProfit">¥0</span></div>
+          <div class="row jt"><span>月間作業時間<span class="th">ชั่วโมงทำงาน/เดือน</span></span><span class="num" id="outMonthlyHours">0 時間</span></div>
+          <div class="row jt"><span>生活費をこの事業だけで賄う場合の必要時給<span class="th">ค่าแรงที่ต้องการหากเลี้ยงชีพด้วยธุรกิจนี้เพียงอย่างเดียว</span></span><span class="num" id="outNeedWage">¥0</span></div>
+          <div class="row total jt"><span>実質時給との差額<span class="th">ส่วนต่างจากค่าแรงจริง</span></span><span class="num" id="outWageDiff">¥0</span></div>
+
+          <div class="block-title jt" style="margin-top:18px">月間利益の配分<span class="th">การจัดสรรกำไรต่อเดือน</span></div>
+          <div class="chart-block" id="allocBlock">
+            <div class="donut-wrap"><div class="ring" id="allocRing"></div><div class="hole" id="allocHole"></div></div>
+            <div class="legend" id="allocLegend"></div>
+          </div>
+          <div class="row jt"><span>生活費目標<span class="th">เป้าหมายค่าครองชีพ</span></span><span class="num" id="outTargetEcho">¥0</span></div>
+          <div class="row total jt"><span>生活資金の過不足<span class="th">ส่วนต่างเงินใช้ชีวิต</span></span><span class="num" id="outLivingDiff">¥0</span></div>
+
+          <div class="chart-block" style="margin-top:14px">
+            <div class="donut-wrap"><div class="ring" id="achieveRing"></div><div class="hole" id="achieveHole"></div></div>
+            <div class="legend jt">生活費目標達成率<span class="th">อัตราการบรรลุเป้าหมายค่าครองชีพ</span></div>
+          </div>
+
+          <div class="row jt" style="margin-top:6px"><span>目標達成に必要な取引回数<span class="th">จำนวนครั้งที่ต้องทำให้ถึงเป้าหมาย</span></span><span class="num" id="outNeedRuns">— 回/月</span></div>
+          <div class="row jt"><span>そのための作業時間<span class="th">ชั่วโมงที่ต้องใช้</span></span><span class="num" id="outNeedHours">— 時間/月</span></div>
+          <div class="row jt"><span>年間の事業留保<span class="th">เงินสะสมในธุรกิจต่อปี</span></span><span class="num" id="outYearlyReserve">¥0</span></div>
+          <div class="row jt"><span>年間の生活資金<span class="th">เงินใช้ชีวิตต่อปี</span></span><span class="num" id="outYearlyLiving">¥0</span></div>
+
+          <div class="hero-label jt" style="margin-top:16px">年間経営判断<span class="th">การตัดสินใจทางธุรกิจประจำปี</span></div>
+          <div class="verdict" id="outVerdict"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="block-title"><span class="jt">AI相談<span class="th">ปรึกษา AI</span></span><span class="jt">相談文（編集可）<span class="th">ข้อความ (แก้ไขได้)</span></span></div>
+      <textarea id="aiText" spellcheck="false"></textarea>
+      <div class="ai-row">
+        <button class="primary" id="copyBtn">相談文をコピー / คัดลอกข้อความ</button>
+        <button id="openChatgpt">ChatGPT</button>
+        <button id="openClaude">Claude</button>
+        <button id="openGemini">Gemini</button>
+        <span class="copied" id="copiedMsg" style="display:none">コピーしました / คัดลอกแล้ว</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ids = ['pQty','pCost','sQty','sPrice','hours','travel','other','shipping','cod','delivery','runs','reserveRatio','target'];
+const $ = id => document.getElementById(id);
+const yen = n => '¥' + Math.round(n).toLocaleString('ja-JP');
+const num = n => Math.round(n).toLocaleString('ja-JP');
+const pct = n => n.toFixed(1) + '%';
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    $('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+$('netEnabled').addEventListener('change', e => { $('netFields').style.display = e.target.checked ? 'block' : 'none'; calc(); });
+
+function load(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('sim-inputs') || '{}');
+    ids.forEach(id => { if(saved[id] !== undefined) $(id).value = saved[id]; });
+    if(saved.netEnabled){ $('netEnabled').checked = true; $('netFields').style.display = 'block'; }
+  }catch(e){}
+}
+function save(v){ try{ localStorage.setItem('sim-inputs', JSON.stringify({...v, netEnabled: $('netEnabled').checked})); }catch(e){} }
+
+function conic(segments){
+  const total = segments.reduce((s,x)=>s+Math.max(0,x.v),0) || 1;
+  let acc = 0, parts = [];
+  segments.forEach(seg=>{
+    const v = Math.max(0,seg.v);
+    const start = acc/total*100, end = (acc+v)/total*100;
+    parts.push(`${seg.c} ${start}% ${end}%`);
+    acc += v;
+  });
+  return `conic-gradient(${parts.join(',')})`;
+}
+
+function calc(){
+  const v = {};
+  ids.forEach(id => v[id] = parseFloat($(id).value) || 0);
+  save(v);
+
+  const netCost = $('netEnabled').checked ? (v.shipping + v.cod + v.delivery) : 0;
+  const expenses = v.travel + v.other + netCost;
+  const revenue = v.sQty * v.sPrice;
+  const runProfit = revenue - v.pCost - expenses;
+  const actualWage = v.hours > 0 ? runProfit / v.hours : 0;
+
+  $('outRunProfit').textContent = yen(runProfit);
+  $('outActualWage').textContent = yen(actualWage) + '/時';
+
+  if(revenue > 0 && runProfit >= 0){
+    $('pieBlock').style.display = 'flex';
+    $('pieRing').style.background = conic([
+      {v:v.pCost, c:'var(--brown)'}, {v:expenses, c:'var(--amber)'}, {v:runProfit, c:'var(--green)'}
+    ]);
+    $('pieHole').innerHTML = yen(revenue) + '<br><span style="font-size:10px;color:var(--sub);font-family:inherit">売上/ยอดขาย</span>';
+    $('pieLegend').innerHTML = `
+      <div><span class="sw" style="background:var(--brown)"></span>仕入/ต้นทุน ${pct(v.pCost/revenue*100)}（${yen(v.pCost)}）</div>
+      <div><span class="sw" style="background:var(--amber)"></span>経費/ค่าใช้จ่าย ${pct(expenses/revenue*100)}（${yen(expenses)}）</div>
+      <div><span class="sw" style="background:var(--green)"></span>利益/กำไร ${pct(runProfit/revenue*100)}（${yen(runProfit)}）</div>`;
+  } else {
+    $('pieRing').style.background = 'var(--track)';
+    $('pieHole').innerHTML = '<span class="na">赤字</span>';
+    $('pieLegend').innerHTML = '<span class="na">事業利益がマイナスのため内訳を表示できません<br><span class="th">กำไรติดลบ ไม่สามารถแสดงสัดส่วนได้</span></span>';
+  }
+
+  const monthlyProfit = runProfit * v.runs;
+  const yearlyProfit = monthlyProfit * 12;
+  const monthlyHours = v.hours * v.runs;
+  const needWage = monthlyHours > 0 ? v.target / monthlyHours : 0;
+  const wageDiff = actualWage - needWage;
+
+  const ratio = Math.min(100, Math.max(0, v.reserveRatio));
+  const reserveAmount = monthlyProfit * (ratio/100);
+  const livingAmount = monthlyProfit - reserveAmount;
+  const livingDiff = livingAmount - v.target;
+  const achieve = v.target > 0 ? (livingAmount / v.target) * 100 : 0;
+  const livingRunProfit = runProfit * (1 - ratio/100);
+  const needRuns = livingRunProfit > 0 ? v.target / livingRunProfit : null;
+  const needHours = needRuns !== null ? needRuns * v.hours : null;
+  const yearlyReserve = reserveAmount * 12;
+  const yearlyLiving = livingAmount * 12;
+
+  $('outMonthlyProfit').textContent = yen(monthlyProfit);
+  $('outYearlyProfit').textContent = yen(yearlyProfit);
+  $('outMonthlyHours').textContent = num(monthlyHours) + ' 時間';
+  $('outNeedWage').textContent = yen(needWage) + '/時';
+  $('outWageDiff').textContent = (wageDiff>=0?'+':'') + yen(wageDiff) + '/時';
+  $('outTargetEcho').textContent = yen(v.target);
+  $('outLivingDiff').textContent = (livingDiff>=0?'+':'') + yen(livingDiff);
+  $('outNeedRuns').textContent = needRuns !== null ? Math.ceil(needRuns) + ' 回/月' : '達成不可（条件の見直しが必要）';
+  $('outNeedHours').textContent = needHours !== null ? num(needHours) + ' 時間/月' : '—';
+  $('outYearlyReserve').textContent = yen(yearlyReserve);
+  $('outYearlyLiving').textContent = yen(yearlyLiving);
+
+  if(monthlyProfit > 0){
+    $('allocRing').style.background = conic([{v:reserveAmount,c:'var(--green)'},{v:Math.max(0,livingAmount),c:'var(--amber)'}]);
+    $('allocHole').innerHTML = pct(ratio) + '<br><span style="font-size:10px;color:var(--sub);font-family:inherit">事業/ธุรกิจ</span>';
+    $('allocLegend').innerHTML = `
+      <div><span class="sw" style="background:var(--green)"></span>事業に残す ${pct(ratio)}（${yen(reserveAmount)}）</div>
+      <div><span class="sw" style="background:var(--amber)"></span>生活に回せる ${pct(100-ratio)}（${yen(livingAmount)}）</div>`;
+  } else {
+    $('allocRing').style.background = 'var(--track)';
+    $('allocHole').innerHTML = '<span class="na">—</span>';
+    $('allocLegend').innerHTML = '<span class="na">月間事業利益がゼロ以下です<br><span class="th">กำไรต่อเดือนเป็นศูนย์หรือติดลบ</span></span>';
+  }
+
+  const ringPct = Math.max(0, Math.min(100, achieve));
+  const ringColor = achieve >= 100 ? 'var(--green)' : 'var(--red)';
+  $('achieveRing').style.background = conic([{v:ringPct,c:ringColor},{v:100-ringPct,c:'var(--track)'}]);
+  $('achieveHole').innerHTML = `<span style="font-size:16px">${achieve.toFixed(1)}%</span>`;
+
+  const verdictEl = $('outVerdict');
+  if(runProfit <= 0){
+    verdictEl.className = 'verdict ng';
+    verdictEl.innerHTML = '1取引の事業利益がマイナスです。仕入・販売条件を見直してください。<br><span class="th">กำไรธุรกิจต่อครั้งติดลบ ควรทบทวนเงื่อนไขการซื้อ-ขาย</span>';
+  } else if(livingAmount >= v.target){
+    verdictEl.className = 'verdict ok';
+    verdictEl.innerHTML = `生活を維持しながら、事業に月${yen(reserveAmount)}（年間${yen(yearlyReserve)}）を残せる（生活資金の余裕 ${yen(livingDiff)}/月）<br><span class="th">รักษาการครองชีพได้ พร้อมเก็บเงินในธุรกิจ ${yen(reserveAmount)}/เดือน (${yen(yearlyReserve)}/ปี)</span>`;
+  } else {
+    verdictEl.className = 'verdict ng';
+    verdictEl.innerHTML = `事業利益は出ているが生活費が不足（${yen(Math.abs(livingDiff))}/月不足）。必要取引回数は月${needRuns!==null?Math.ceil(needRuns):'—'}回<br><span class="th">มีกำไรธุรกิจแต่เงินใช้ชีวิตไม่พอ (ขาด ${yen(Math.abs(livingDiff))}/เดือน)</span>`;
+  }
+
+  buildAiText(v, {runProfit,actualWage,revenue,expenses,monthlyProfit,yearlyProfit,monthlyHours,needWage,wageDiff,ratio,reserveAmount,livingAmount,livingDiff,achieve,needRuns,needHours,yearlyReserve,yearlyLiving});
+}
+
+function buildAiText(v, r){
+  const netEnabled = $('netEnabled').checked;
+  $('aiText').value =
+`【年間経営判断の相談：1取引→月→年】
+
+■1取引の条件
+・仕入：${v.pQty}単位 / ${yen(v.pCost)}
+・販売：${v.sQty}単位 / 単価${yen(v.sPrice)}
+・経費（移動費+その他${netEnabled?'+送料+代引き+配達':''}）：${yen(r.expenses)}
+・作業時間：${v.hours}時間
+
+■取引採算
+・1取引の事業利益：${yen(r.runProfit)}
+・実質時給：${yen(r.actualWage)}/時
+
+■経営条件
+・月間実施回数：${v.runs}回
+・事業に残す割合：${r.ratio}%
+・生活費目標：${yen(v.target)}/月
+
+■年間経営判断（1取引→月→年）
+・月間事業利益：${yen(r.monthlyProfit)}　／　年間事業利益：${yen(r.yearlyProfit)}
+・事業に残す（月）：${yen(r.reserveAmount)}（年間 ${yen(r.yearlyReserve)}）
+・生活に回せる（月）：${yen(r.livingAmount)}（年間 ${yen(r.yearlyLiving)}）
+・生活資金の過不足：${yen(r.livingDiff)}/月
+・生活費目標達成率：${r.achieve.toFixed(1)}%
+・目標達成に必要な取引回数：${r.needRuns!==null?Math.ceil(r.needRuns)+'回/月':'現条件では達成不可'}
+・そのための作業時間：${r.needHours!==null?num(r.needHours)+'時間/月':'—'}
+
+生活を維持しながら事業を継続・成長させるには何を見直すべきか相談したいです。販売単価・仕入条件・実施回数・事業に残す割合のどれを変えるのが現実的か、具体的なアドバイスをください。`;
+}
+
+ids.forEach(id => $(id).addEventListener('input', calc));
+$('copyBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText($('aiText').value).then(()=>{
+    const m = $('copiedMsg'); m.style.display='inline'; setTimeout(()=>m.style.display='none', 1800);
+  }).catch(()=>{});
+});
+$('openChatgpt').addEventListener('click', () => window.open('https://chat.openai.com/', '_blank'));
+$('openClaude').addEventListener('click', () => window.open('https://claude.ai/new', '_blank'));
+$('openGemini').addEventListener('click', () => window.open('https://gemini.google.com/app', '_blank'));
+
+load();
+calc();
+</script>
+</body>
+</html>
